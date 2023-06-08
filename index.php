@@ -12,28 +12,28 @@
 <div class="content">
     <div class="fila">
         <div class="columna">
-            <input type="text" placeholder="NOMBRE" name="nombre" value="<?php echo isset($_SESSION['datos']['nombre']) ? $_SESSION['datos']['nombre'] : ''; ?>">
-            <input type="text" placeholder="APELLIDOS" name="apellidos" value="<?php echo isset($_SESSION['datos']['apellidos']) ? $_SESSION['datos']['apellidos'] : ''; ?>">
-            <input type="text" placeholder="DIRECCIÓN" name="direccion" value="<?php echo isset($_SESSION['datos']['direccion']) ? $_SESSION['datos']['direccion'] : ''; ?>">
+            <input type="text" placeholder="NOMBRE" name="nombre" value="<?php echo isset($_SESSION['nombre']) ? $_SESSION['nombre'] : ''; ?>">
+            <input type="text" placeholder="APELLIDOS" name="apellidos" value="<?php echo isset($_SESSION['apellidos']) ? $_SESSION['apellidos'] : ''; ?>">
+            <input type="text" placeholder="DIRECCIÓN" name="direccion" value="<?php echo isset($_SESSION['direccion']) ? $_SESSION['direccion'] : ''; ?>">
         </div>
         <div class="columna">
             <h1 class="campus">CAMPUSLANDS</h1>
-            <input type="number" placeholder="EDAD" name="edad" value="<?php echo isset($_SESSION['datos']['edad']) ? $_SESSION['datos']['edad'] : ''; ?>">
-            <input type="email" placeholder="EMAIL" name="email" value="<?php echo isset($_SESSION['datos']['email']) ? $_SESSION['datos']['email'] : ''; ?>">
+            <input type="number" placeholder="EDAD" name="edad" value="<?php echo isset($_SESSION['edad']) ? $_SESSION['edad'] : ''; ?>">
+            <input type="email" placeholder="EMAIL" name="email" value="<?php echo isset($_SESSION['email']) ? $_SESSION['email'] : ''; ?>">
         </div>
     </div>
         <br><br><br>
     <div class="fila">
         <div class="columna">
-            <input type="date" placeholder="HORARIO DE ENTRADA" name="horario" value="<?php echo isset($_SESSION['datos']['horario']) ? $_SESSION['datos']['horario'] : ''; ?>">
-            <input type="number" placeholder="TEAM" name="team" value="<?php echo isset($_SESSION['datos']['team']) ? $_SESSION['datos']['team'] : ''; ?>">
-            <input type="text" placeholder="ENTRENADOR" name="entrenador" value="<?php echo isset($_SESSION['datos']['entrenador']) ? $_SESSION['datos']['entrenador'] : ''; ?>">
+            <input type="date" placeholder="HORARIO DE ENTRADA" name="horario" value="<?php echo isset($_SESSION['horario']) ? $_SESSION['horario'] : ''; ?>">
+            <input type="number" placeholder="TEAM" name="team" value="<?php echo isset($_SESSION['team']) ? $_SESSION['team'] : ''; ?>">
+            <input type="text" placeholder="ENTRENADOR" name="entrenador" value="<?php echo isset($_SESSION['entrenador']) ? $_SESSION['entrenador'] : ''; ?>">
         </div>
         <div class="columna">
             <button type="submit" name="guardar">Guardar</button>
             <button type="submit" name="editar">Editar</button>
             <button>Eliminar</button>
-            <input type="text" placeholder="CÉDULA" name="cedula" value="<?php echo isset($_SESSION['datos']['cedula']) ? $_SESSION['datos']['cedula'] : ''; ?>">
+            <input type="text" placeholder="CÉDULA" name="cedula" value="<?php echo isset($_SESSION['cedula']) ? $_SESSION['cedula'] : ''; ?>">
         </div>
     </div>
     <br><br><br>
@@ -54,10 +54,10 @@ if (isset($_POST['guardar'])) {
     $cedula = isset($_POST['cedula']) ? $_POST['cedula'] : "";
 
     // Obtener los datos guardados en la sesión
-    $datos = isset($_SESSION['datos']) ? $_SESSION['datos'] : array();
+    $tabla = isset($_SESSION['tabla']) ? $_SESSION['tabla'] : array();
 
-    // Agregar los nuevos datos a la sesión
-    $datos = array(
+    // Agregar los nuevos datos a la tabla
+    $fila = array(
         'nombre' => $nombre,
         'apellidos' => $apellidos,
         'direccion' => $direccion,
@@ -66,68 +66,65 @@ if (isset($_POST['guardar'])) {
         'horario' => $horario,
         'team' => $team,
         'entrenador' => $entrenador,
-        "cedula" => $cedula
+        "decula" => $cedula
     );
-    $_SESSION['datos'] = $datos;
+    $tabla[] = $fila;
+
+    // Guardar la tabla actualizada en la sesión
+    $_SESSION['tabla'] = $tabla;
 
     // Mostrar la tabla con todos los datos
     echo "<table>";
     echo "<br><br><br>";
     echo "<tr><th>Nombre</th><th>Apellidos</th><th>Dirección</th><th>Edad</th><th>Email</th><th>Horario</th><th>Team</th><th>Entrenador</th></tr>";
-    echo "<tr>";
-    echo "<td>".$datos['nombre']."</td>";
-    echo "<td>".$datos['apellidos']."</td>";
-    echo "<td>".$datos['direccion']."</td>";
-    echo "<td>".$datos['edad']."</td>";
-    echo "<td>".$datos['email']."</td>";
-    echo "<td>".$datos['horario']."</td>";
-    echo "<td>".$datos['team']."</td>";
-    echo "<td>".$datos['entrenador']."</td>";
-    echo "</tr>";
+    foreach ($tabla as $fila) {
+        echo "<tr>";
+        echo "<td>".$fila['nombre']."</td>";
+        echo "<td>".$fila['apellidos']."</td>";
+        echo "<td>".$fila['direccion']."</td>";
+        echo "<td>".$fila['edad']."</td>";
+        echo "<td>".$fila['email']."</td>";
+        echo "<td>".$fila['horario']."</td>";
+        echo "<td>".$fila['team']."</td>";
+        echo "<td>".$fila['entrenador']."</td>";
+        echo "</tr>";
+    }
     echo "</table>";
     session_destroy();
     echo "<br><br>";
+    $credenciales["http"]["method"] = "POST";
+    $credenciales["http"]["header"] = "Content-type: application/json";
+    $data = [
+        "cedula"=>$cedula,
+        "nombre"=> $nombre,
+        "apellidos"=> $apellidos,
+        "direccion"=> $direccion,
+        "edad"=> $edad,
+        "email"=>$email,
+        "horario"=>$horario,
+        "team"=>$team,
+        "entrenador"=>$entrenador
+    ];
+    $data = json_encode($data);
+    $credenciales["http"]["content"] = $data;
+    $config = stream_context_create($credenciales);
+    
+    $_DATA = file_get_contents("https://648136c029fa1c5c50313005.mockapi.io/informacion", false, $config);
+    print_r($_DATA);
 
-    // Realizar el envío de datos a través de la API
-    $url = 'https://648136c029fa1c5c50313005.mockapi.io/informacion';
-    $data = array(
-        'cedula' => $datos['cedula'],
-        'nombre' => $datos['nombre'],
-        'apellidos' => $datos['apellidos'],
-        'direccion' => $datos['direccion'],
-        'edad' => $datos['edad'],
-        'email' => $datos['email'],
-        'horario' => $datos['horario'],
-        'team' => $datos['team'],
-        'entrenador' => $datos['entrenador']
-    );
-    $options = array(
-        'http' => array(
-            'header'  => "Content-type: application/json",
-            'method'  => 'POST',
-            'content' => json_encode($data)
-        )
-    );
-    $context  = stream_context_create($options);
-    $result = file_get_contents($url, false, $context);
-    if ($result === false) {
-        echo "Error al enviar los datos a la API";
-    } else {
-        echo "Los datos se enviaron correctamente a la API";
-    }
-} elseif (isset($_POST['editar'])) {
+
+    // session_destroy();
+}elseif (isset($_POST['editar'])) {
     // Almacenar los datos en la sesión
-    $_SESSION['datos'] = array(
-        'nombre' => $_POST['nombre'],
-        'apellidos' => $_POST['apellidos'],
-        'direccion' => $_POST['direccion'],
-        'edad' => $_POST['edad'],
-        'email' => $_POST['email'],
-        'horario' => $_POST['horario'],
-        'team' => $_POST['team'],
-        'entrenador' => $_POST['entrenador'],
-        'cedula' => $_POST['cedula']
-    );
+    $_SESSION['nombre'] = $_POST['nombre'];
+    $_SESSION['apellidos'] = $_POST['apellidos'];
+    $_SESSION['direccion'] = $_POST['direccion'];
+    $_SESSION['edad'] = $_POST['edad'];
+    $_SESSION['email'] = $_POST['email'];
+    $_SESSION['horario'] = $_POST['horario'];
+    $_SESSION['team'] = $_POST['team'];
+    $_SESSION['entrenador'] = $_POST['entrenador'];
+    $_SESSION['cedula'] = $_POST['cedula'];
 }
 ?>
 </body>
