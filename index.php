@@ -32,25 +32,7 @@ if (isset($_POST['guardar'])) {
     // Guardar la tabla actualizada en la sesión
     $_SESSION['tabla'] = $tabla;
 
-    // Mostrar la tabla con todos los datos
-    echo "<table>";
-    echo "<br><br><br>";
-    echo "<tr><th>Nombre</th><th>Apellidos</th><th>Dirección</th><th>Edad</th><th>Email</th><th>Horario</th><th>Team</th><th>Entrenador</th></tr>";
-    foreach ($tabla as $fila) {
-        echo "<tr>";
-        echo "<td>".$fila['nombre']."</td>";
-        echo "<td>".$fila['apellidos']."</td>";
-        echo "<td>".$fila['direccion']."</td>";
-        echo "<td>".$fila['edad']."</td>";
-        echo "<td>".$fila['email']."</td>";
-        echo "<td>".$fila['horario']."</td>";
-        echo "<td>".$fila['team']."</td>";
-        echo "<td>".$fila['entrenador']."</td>";
-        echo "</tr>";
-    }
-    echo "</table>";
-    // session_destroy();
-    echo "<br><br>";
+   
     $credenciales["http"]["method"] = "POST";
     $credenciales["http"]["header"] = "Content-type: application/json";
     $data = [
@@ -91,12 +73,95 @@ if (isset($_POST['guardar'])) {
         $team = $resultado[0]['team'];
         $entrenador = $resultado[0]['entrenador'];
     }
+    else{
+        echo '<h2>cedula no encontrada</h2>';
+    }
     // print_r($resultado);
     
-}else if(isset($_POST['editar'])){
-    $cedula = ($_POST['cedula']) ;
-    $_DATA3 = file_get_contents("https://648136c029fa1c5c50313005.mockapi.io/informacion/"."?cedula=".$cedula);
+}else if (isset($_POST['editar'])) {
+    $cedula = $_POST['cedula'];
+    $_DATA4 = file_get_contents("https://648136c029fa1c5c50313005.mockapi.io/informacion/?cedula=".$cedula);
+    
+    $resultado = json_decode($_DATA4, true);
+    $resultado = $resultado[0];
+    
+    if (!empty($resultado)) {
+        $data = [
+            "nombre" => $_POST['nombre'],
+            "apellidos" => $_POST['apellidos'],
+            "direccion" => $_POST['direccion'],
+            "edad" => $_POST['edad'],
+            "email" => $_POST['email'],
+            "horario" => $_POST['horario'],
+            "team" => $_POST['team'],
+            "entrenador" => $_POST['entrenador']
+        ];
+        $data = json_encode($data);
+        $url = "https://648136c029fa1c5c50313005.mockapi.io/informacion/" . $resultado['id'];
+        $opciones = [
+            'http' => [
+                'method' => 'PUT',
+                'header' => 'Content-type: application/json',
+                'content' => $data
+            ]
+        ];
+        $contexto = stream_context_create($opciones);
+        $resultadoEdicion = file_get_contents($url, false, $contexto);
+    
+        if ($resultadoEdicion !== false) {
+            echo "<h2>Los datos se han actualizado correctamente</h2>";
+        } else {
+            echo "<h2>Error al actualizar los datos</h2>";
+        }
+
+        
+    }
 }
+else if (isset($_POST['eliminar'])) {
+    $cedula = $_POST['cedula'];
+    $_DATA3 = file_get_contents("https://648136c029fa1c5c50313005.mockapi.io/informacion/?cedula=".$cedula);
+    
+    $resultado = json_decode($_DATA3, true);
+    $resultado = $resultado[0];
+    
+    if (!empty($resultado)) {
+        $url = "https://648136c029fa1c5c50313005.mockapi.io/informacion/" . $resultado['id'];
+        $opciones = [
+            'http' => [
+                'method' => 'DELETE'
+            ]
+        ];
+        $contexto = stream_context_create($opciones);
+        $resultadoBorrado = file_get_contents($url, false, $contexto);
+
+        $matriz = [
+            'nombre' => $resultado['nombre'],
+            'apellidos' => $resultado['apellidos'],
+            'direccion' => $resultado['direccion'],
+            'edad' => $resultado['edad'],
+            'email' => $resultado['email'],
+            'horario' => $resultado['horario'],
+            'team' => $resultado['team'],
+            'entrenador' => $resultado['entrenador']
+        ];
+        
+        // print_r($matriz);
+        
+        if ($resultadoBorrado !== false) {
+            unset($matriz['nombre']);
+            unset($matriz['apellidos']);
+            unset($matriz['direccion']);
+            unset($matriz['edad']);
+            unset($matriz['email']);
+            unset($matriz['horario']);
+            unset($matriz['team']);
+            unset($matriz['entrenador']);
+
+        }
+        
+    }
+}
+
 
 
 ?>
@@ -143,5 +208,28 @@ if (isset($_POST['guardar'])) {
             <br><br><br>
         </div>
     </form>
+    <?php
+
+         // Mostrar la tabla con todos los datos
+    echo "<table>";
+    echo "<br><br><br>";
+    echo "<tr><th>Nombre</th><th>Apellidos</th><th>Dirección</th><th>Edad</th><th>Email</th><th>Horario</th><th>Team</th><th>Entrenador</th></tr>";
+    foreach ($tabla as $fila) {
+        echo "<tr>";
+        echo "<td>".$fila['nombre']."</td>";
+        echo "<td>".$fila['apellidos']."</td>";
+        echo "<td>".$fila['direccion']."</td>";
+        echo "<td>".$fila['edad']."</td>";
+        echo "<td>".$fila['email']."</td>";
+        echo "<td>".$fila['horario']."</td>";
+        echo "<td>".$fila['team']."</td>";
+        echo "<td>".$fila['entrenador']."</td>";
+        echo "</tr>";
+    }
+    echo "</table>";
+    // session_destroy();
+    echo "<br><br>";
+
+    ?>
 </body>
 </html>
