@@ -32,7 +32,7 @@ if (isset($_POST['guardar'])) {
     // Guardar la tabla actualizada en la sesión
     $_SESSION['tabla'] = $tabla;
 
-   
+
     $credenciales["http"]["method"] = "POST";
     $credenciales["http"]["header"] = "Content-type: application/json";
     $data = [
@@ -49,7 +49,7 @@ if (isset($_POST['guardar'])) {
     $data = json_encode($data);
     $credenciales["http"]["content"] = $data;
     $config = stream_context_create($credenciales);
-    
+
     $_DATA = file_get_contents("https://648136c029fa1c5c50313005.mockapi.io/informacion", false, $config);
     // print_r($_DATA);
 
@@ -72,6 +72,8 @@ if (isset($_POST['guardar'])) {
         $horario = $resultado[0]['horario'];
         $team = $resultado[0]['team'];
         $entrenador = $resultado[0]['entrenador'];
+
+
     }
     else{
         echo '<h2>cedula no encontrada</h2>';
@@ -114,7 +116,26 @@ if (isset($_POST['guardar'])) {
             echo "<h2>Error al actualizar los datos</h2>";
         }
 
-        
+        // Obtener los datos guardados en la sesión
+        $tabla = isset($_SESSION['tabla']) ? $_SESSION['tabla'] : array();
+
+        // Buscar la fila correspondiente en la tabla y actualizar los datos
+        foreach ($tabla as &$fila) {
+            if ($fila['cedula'] === $cedula) {
+                $fila['nombre'] = $_POST['nombre'];
+                $fila['apellidos'] = $_POST['apellidos'];
+                $fila['direccion'] = $_POST['direccion'];
+                $fila['edad'] = $_POST['edad'];
+                $fila['email'] = $_POST['email'];
+                $fila['horario'] = $_POST['horario'];
+                $fila['team'] = $_POST['team'];
+                $fila['entrenador'] = $_POST['entrenador'];
+                break;
+            }
+        }
+
+        // Guardar la tabla actualizada en la sesión
+        $_SESSION['tabla'] = $tabla;
     }
 }
 else if (isset($_POST['eliminar'])) {
@@ -157,13 +178,22 @@ else if (isset($_POST['eliminar'])) {
             unset($matriz['team']);
             unset($matriz['entrenador']);
 
-        }
-        
-    }
+            // Eliminar la fila 
+            $tabla = $_SESSION['tabla'];
+            $cedula = $_POST['cedula'];
+
+            foreach ($tabla as $indice => $fila) {
+                if ($fila['cedula'] == $cedula) {
+                    unset($tabla[$indice]);
+                    break;
+                }
+             }
+
+            // Guardar la tabla actualizada en la sesión
+            $_SESSION['tabla'] = $tabla;
+                }
+            }
 }
-
-
-
 ?>
 
 <!DOCTYPE html>
@@ -208,28 +238,35 @@ else if (isset($_POST['eliminar'])) {
             <br><br><br>
         </div>
     </form>
-    <?php
-
-         // Mostrar la tabla con todos los datos
-    echo "<table>";
-    echo "<br><br><br>";
-    echo "<tr><th>Nombre</th><th>Apellidos</th><th>Dirección</th><th>Edad</th><th>Email</th><th>Horario</th><th>Team</th><th>Entrenador</th></tr>";
-    foreach ($tabla as $fila) {
-        echo "<tr>";
-        echo "<td>".$fila['nombre']."</td>";
-        echo "<td>".$fila['apellidos']."</td>";
-        echo "<td>".$fila['direccion']."</td>";
-        echo "<td>".$fila['edad']."</td>";
-        echo "<td>".$fila['email']."</td>";
-        echo "<td>".$fila['horario']."</td>";
-        echo "<td>".$fila['team']."</td>";
-        echo "<td>".$fila['entrenador']."</td>";
-        echo "</tr>";
-    }
-    echo "</table>";
-    // session_destroy();
-    echo "<br><br>";
-
-    ?>
+    <br><br>
+    <h2>Tabla de campers </h2>
+    <table>
+        <tr>
+            <th>Cédula</th>
+            <th>Nombre</th>
+            <th>Apellidos</th>
+            <th>Dirección</th>
+            <th>Edad</th>
+            <th>Email</th>
+            <th>Horario</th>
+            <th>Equipo</th>
+            <th>Entrenador</th>
+        </tr>
+        <?php
+        foreach ($tabla as $fila) {
+            echo "<tr>";
+            echo "<td>" . $fila['cedula'] . "</td>";
+            echo "<td>" . $fila['nombre'] . "</td>";
+            echo "<td>" . $fila['apellidos'] . "</td>";
+            echo "<td>" . $fila['direccion'] . "</td>";
+            echo "<td>" . $fila['edad'] . "</td>";
+            echo "<td>" . $fila['email'] . "</td>";
+            echo "<td>" . $fila['horario'] . "</td>";
+            echo "<td>" . $fila['team'] . "</td>";
+            echo "<td>" . $fila['entrenador'] . "</td>";
+            echo "</tr>";
+        }
+        // session_destroy();
+        ?>
 </body>
 </html>
